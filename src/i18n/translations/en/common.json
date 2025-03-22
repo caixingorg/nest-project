@@ -1,0 +1,23 @@
+{
+  "welcome": "Welcome to NestJS Enterprise App",
+  "errors": {
+    "unauthorized": "Unauthorized access",
+    "forbidden": "Forbidden resource",
+    "not_found": "Resource not found",
+    "validation": "Validation error",
+    "internal_server": "Internal server error"
+  },
+  "auth": {
+    "login_success": "Login successful",
+    "login_failed": "Login failed",
+    "logout_success": "Logout successful",
+    "invalid_credentials": "Invalid credentials",
+    "token_expired": "Token has expired"
+  },
+  "user": {
+    "created": "User created successfully",
+    "updated": "User updated successfully",
+    "deleted": "User deleted successfully",
+    "not_found": "User not found"
+  }
+}
