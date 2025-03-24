@@ -1,4 +1,4 @@
-import { genSalt, hash } from 'bcrypt';
+import { hash } from 'argon2';
 import { Exclude } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -34,8 +34,7 @@ export class User {
   async hashPassword() {
     // Only hash the password if it has been modified
     if (this.password) {
-      const salt = await genSalt();
-      this.password = await hash(this.password, salt);
+      this.password = await hash(this.password);
     }
   }
 }

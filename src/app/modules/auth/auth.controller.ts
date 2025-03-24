@@ -2,93 +2,67 @@ import {
   Controller,
   Post,
   Body,
-  HttpCode,
+  HttpException,
   HttpStatus,
-  UseGuards,
-  Get,
   Req,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { Request } from 'express';
-import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { RegisterDto } from './dto/register.dto';
 
-// Extend the Express Request type to include the user property
-interface RequestWithUser extends Request {
-  user: JwtPayload;
-}
-
-@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    try {
+      const result = await this.authService.register(registerDto);
+      return result;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Post('login')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'User login' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Login successful',
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'Invalid credentials',
-  })
   async login(@Body() loginDto: LoginDto) {
-    const result = await this.authService.login(loginDto);
-    return {
-      ...result,
-      message: 'Login successful',
-    };
+    try {
+      const result = await this.authService.login(loginDto);
+      return result;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get user profile' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'User profile',
-  })
-  getProfile(@Req() req: RequestWithUser) {
-    return req.user;
+  @Post('refresh-token')
+  async refreshToken(@Req() req) {
+    try {
+      const userId = req.user.sub;
+      const result = await this.authService.refreshToken(userId);
+      return result;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('refresh')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Refresh JWT token' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Token refreshed',
-  })
-  async refreshToken(@Req() req: RequestWithUser) {
-    const userId = req.user.sub; // Using 'sub' which is the user ID according to JwtPayload
-    return this.authService.refreshToken(userId);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
-  @ApiBearerAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'User logout' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Logout successful',
-  })
-  logout(@Req() req: RequestWithUser) {
-    const userId = req.user.sub;
-    const result = this.authService.logout(userId);
-    return {
-      ...result,
-      message: 'Logout successful',
-    };
+  async logout(@Req() req) {
+    try {
+      const userId = req.user.sub;
+      const token = req.headers.authorization?.split(' ')[1];
+      const result = await this.authService.logout(userId, token); // 传递两个参数
+      return result;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsString,
   MinLength,
+  MaxLength,
   IsArray,
   IsOptional,
   IsBoolean,
@@ -16,6 +17,8 @@ export class CreateUserDto {
   })
   @IsNotEmpty({ message: 'Username is required' })
   @IsString({ message: 'Username must be a string' })
+  @MinLength(3, { message: 'Username must be at least 3 characters long' })
+  @MaxLength(50, { message: 'Username must not exceed 50 characters' })
   username: string;
 
   @ApiProperty({
@@ -50,7 +53,7 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsBoolean({ message: 'isActive must be a boolean' })
-  isActive?: boolean;
+  isActive: boolean = true;
 
   @ApiPropertyOptional({
     description: 'User roles',
@@ -61,5 +64,5 @@ export class CreateUserDto {
   @IsOptional()
   @IsArray({ message: 'Roles must be an array' })
   @IsString({ each: true, message: 'Each role must be a string' })
-  roles?: string[];
+  roles: string[] = ['user'];
 }
